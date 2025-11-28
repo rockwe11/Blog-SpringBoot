@@ -2,11 +2,10 @@ package com.example.blog.controller;
 
 import com.example.blog.dto.AuthorDto;
 import com.example.blog.entity.Author;
-import com.example.blog.exception.ResourceNotFoundException;
 import com.example.blog.mapper.AuthorMapper;
 import com.example.blog.repository.AuthorRepository;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,39 +13,57 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/authors")
-@RequiredArgsConstructor
 public class AuthorController {
 
-    private final AuthorRepository authorRepo;
+    private final AuthorRepository authorRepository;
+    private final AuthorMapper authorMapper;
 
-    @PostMapping
-    public AuthorDto create(@Valid @RequestBody Author a) {
-        return AuthorMapper.toDto(authorRepo.save(a));
+    public AuthorController(AuthorRepository authorRepository,
+                            AuthorMapper authorMapper) {
+        this.authorRepository = authorRepository;
+        this.authorMapper = authorMapper;
     }
 
     @GetMapping
-    public List<AuthorDto> all() {
-        return authorRepo.findAll()
-                .stream()
+    public List<AuthorDto> getAll() {
+        return authorRepository.findAll().stream()
                 .map(AuthorMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public AuthorDto get(@PathVariable Long id) {
-        return AuthorMapper.toDto(authorRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Author not found")));
+    public ResponseEntity<AuthorDto> getById(@PathVariable Long id) {
+        return authorRepository.findById(id)
+                .map(a -> ResponseEntity.ok(authorMapper.toDto(a)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    public AuthorDto create(@Valid @RequestBody AuthorDto dto) {
+        Author author = authorMapper.toEntity(dto);
+        authorRepository.save(author);
+        return authorMapper.toDto(author);
     }
 
     @PutMapping("/{id}")
-    public AuthorDto update(@PathVariable Long id, @RequestBody Author a) {
-        Author existing = authorRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Author not found"));
-        existing.setName(a.getName());
-        existing.setEmail(a.getEmail());
-        return AuthorMapper.toDto(authorRepo.save(existing));
+    public ResponseEntity<AuthorDto> update(@PathVariable Long id,
+                                            @RequestBody AuthorDto dto) {
+        return authorRepository.findById(id)
+                .map(existing -> {
+                    existing.setName(dto.getName());
+                    existing.setEmail(dto.getEmail());
+                    authorRepository.save(existing);
+                    return ResponseEntity.ok(authorMapper.toDto(existing));
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        authorRepo.deleteById(id);
+    public ResponseEntity<?> delete(@PathVariable Long id) {
+        if (!authorRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        authorRepository.deleteById(id);
+        return ResponseEntity.ok().build();
     }
 }

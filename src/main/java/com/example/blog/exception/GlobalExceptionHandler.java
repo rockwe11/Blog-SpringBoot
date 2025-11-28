@@ -1,5 +1,6 @@
 package com.example.blog.exception;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -12,6 +13,22 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    // Unique
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+
+        if (ex.getMessage().contains("unique") || ex.getMessage().contains("Unique")) {
+            errorResponse.put("error", "Нарушение уникальности");
+            errorResponse.put("message", "A field with the same name already exists in the system");
+            return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+        }
+
+        errorResponse.put("error", "Data integrity violation");
+        errorResponse.put("message", ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
 
     // Ошибки @Valid
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -1,23 +1,24 @@
 package com.example.blog.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import java.time.LocalDateTime;
 
 @Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
+@Table(name = "tags")
 public class Tag {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private String name;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 }

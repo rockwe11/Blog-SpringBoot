@@ -1,45 +1,49 @@
 package com.example.blog.entity;
 
-
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import java.util.List;
 
 @Entity
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@Setter
+@Table(name = "posts")
 public class Post {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
+    @Column(nullable = false)
     private String title;
 
-    @Lob
-    @NotBlank
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Enumerated(EnumType.STRING)
-    private PostStatus status = PostStatus.DRAFT;
+    @Column(nullable = false)
+    private String status;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author_id", nullable = false)
     private Author author;
+
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "post_tags",
+            joinColumns = @JoinColumn(name = "post_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags = new HashSet<>();;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
 
-    @ManyToMany
-    private Set<Tag> tags = new HashSet<>();
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 }
-

@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +15,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "authors")
 public class Author {
 
     @Id
@@ -27,6 +29,9 @@ public class Author {
     @NotBlank
     private String email;
 
-    @OneToMany(mappedBy = "author")
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
     private List<Post> posts = new ArrayList<>();
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 }

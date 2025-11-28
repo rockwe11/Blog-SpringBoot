@@ -1,0 +1,13 @@
+CREATE TABLE posts (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'DRAFT',
+    author_id BIGINT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (author_id) REFERENCES authors(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_posts_author_id ON posts(author_id);
+CREATE INDEX idx_posts_status ON posts(status);
